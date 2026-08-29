@@ -434,22 +434,94 @@
       background: rgba(37, 20, 46, .3);
     }
 
-    /* jokes card: frosted glass so the photo shows through behind the text */
-    #screen-jokes .card {
+    /* ---------- post-jokes blurred backdrop (all later screens) ---------- */
+    .second-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      opacity: 0;
+      transition: opacity .5s var(--ease);
+      background-image: url('second.jpeg');
+      background-size: cover;
+      background-position: center 22%;
+      filter: blur(6px) brightness(.95) saturate(1.05);
+      transform: scale(1.08);
+      pointer-events: none;
+    }
+
+    .second-bg.show {
+      opacity: 1;
+    }
+
+    .second-bg::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 231, 222, .22);
+    }
+
+    body.night .second-bg::after {
+      background: rgba(37, 20, 46, .3);
+    }
+
+    /* jokes + later cards: frosted glass so the photo shows through behind the text */
+    #screen-jokes .card,
+    #screen-cards .card,
+    #screen-decorate .text-panel,
+    #screen-letter .letter {
       background: rgba(255, 251, 246, .62);
       backdrop-filter: blur(18px) saturate(1.4);
       -webkit-backdrop-filter: blur(18px) saturate(1.4);
       border: 1px solid rgba(255, 255, 255, .5);
     }
 
-    body.night #screen-jokes .card {
+    body.night #screen-jokes .card,
+    body.night #screen-cards .card,
+    body.night #screen-decorate .text-panel,
+    body.night #screen-letter .letter {
       background: rgba(43, 27, 34, .5);
       border: 1px solid rgba(255, 255, 255, .12);
     }
 
     body.night #screen-jokes .card h2,
-    body.night #screen-jokes .card .eyebrow {
+    body.night #screen-jokes .card .eyebrow,
+    body.night #screen-cards .card h2,
+    body.night #screen-decorate .text-panel h2,
+    body.night #screen-decorate .text-panel p,
+    body.night #screen-letter .letter p,
+    body.night #screen-letter .letter .greeting {
       color: var(--cream-50);
+    }
+
+    #screen-decorate .text-panel {
+      border-radius: 24px;
+      padding: clamp(22px, 6vw, 30px) clamp(18px, 5vw, 26px);
+      margin-bottom: 22px;
+      box-shadow: 0 24px 50px -22px rgba(43, 27, 34, .3);
+    }
+
+    #screen-decorate .text-panel .flourish {
+      margin-bottom: 0;
+    }
+
+    #screen-decorate .text-panel h2 {
+      margin-bottom: 14px;
+    }
+
+    #screen-decorate .text-panel p {
+      margin-top: 14px;
+      margin-bottom: 0;
+    }
+
+    /* balloons + cake: no boxed panel (would clash with the animation), so lean on text-shadow for legibility */
+    #screen-balloons .word-line span,
+    #screen-cake .hb span {
+      text-shadow: 0 2px 14px rgba(255, 251, 246, .9), 0 1px 3px rgba(255, 251, 246, .9);
+    }
+
+    body.night #screen-balloons .word-line span,
+    body.night #screen-cake .hb span {
+      text-shadow: 0 2px 14px rgba(20, 12, 16, .85), 0 1px 3px rgba(20, 12, 16, .85);
     }
 
     .bunnies {
@@ -473,6 +545,10 @@
       align-items: center;
       justify-content: center;
       word-break: break-word;
+    }
+
+    .card h2 .h2-line {
+      display: inline;
     }
 
     .card h2 .accent {
@@ -1142,6 +1218,7 @@
 
 <body>
   <div class="selfie-bg" id="selfie-bg" aria-hidden="true"></div>
+  <div class="second-bg" id="second-bg" aria-hidden="true"></div>
 
   <div class="ambient" id="ambient" aria-hidden="true"></div>
   <div class="fairy-lights" id="fairy-lights" aria-hidden="true"></div>
@@ -1216,9 +1293,11 @@
 
     <!-- 3. DECORATE -->
     <section class="screen" id="screen-decorate">
-      <h2>Let's Celebrate! 🎉</h2>
-      <div class="flourish">✧ ˚ ✦ ˚ ✧</div>
-      <p>Tap the buttons to set the mood</p>
+      <div class="text-panel">
+        <h2>Let's Celebrate! 🎉</h2>
+        <div class="flourish">✧ ˚ ✦ ˚ ✧</div>
+        <p>Tap the buttons to set the mood</p>
+      </div>
       <div class="deco-stack">
         <button class="btn" id="lights-btn" onclick="turnOnLights()">💡 Turn On the Lights</button>
         <button class="btn ghost" id="music-btn" style="display:none" onclick="toggleMusic()">🎵 Play Music</button>
@@ -1376,6 +1455,8 @@
       $(id).classList.add('active');
       renderAmbient(id);
       $('selfie-bg').classList.toggle('show', id === 'screen-jokes');
+      const afterJokes = ['screen-cards', 'screen-decorate', 'screen-balloons', 'screen-cake', 'screen-letter'];
+      $('second-bg').classList.toggle('show', afterJokes.includes(id));
     }
     renderAmbient('screen-countdown');
 
@@ -1429,7 +1510,7 @@
     let cardIdx = 0;
     function renderCard() {
       const c = CONFIG.cards[cardIdx];
-      $('card-text').innerHTML = fill(c.html);
+      $('card-text').innerHTML = '<span class="h2-line">' + fill(c.html) + '</span>';
       $('card-btn').textContent = c.cta || 'Next';
       const dots = $('card-dots');
       dots.innerHTML = '';
