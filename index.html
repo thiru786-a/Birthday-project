@@ -493,6 +493,12 @@
       color: var(--cream-50);
     }
 
+    .joke-wait {
+      margin-top: 14px;
+      font-size: clamp(11.5px, 3.2vw, 12.5px);
+      opacity: .65;
+    }
+
     #screen-decorate .text-panel {
       border-radius: 24px;
       padding: clamp(22px, 6vw, 30px) clamp(18px, 5vw, 26px);
@@ -1255,6 +1261,7 @@
         <h2 id="joke-text"></h2>
         <button class="btn" id="joke-btn" onclick="nextJoke()">Next</button>
         <div class="dots" id="joke-dots"></div>
+        <div class="joke-wait" id="joke-wait" style="display:none"></div>
       </div>
     </section>
 
@@ -1374,11 +1381,12 @@
        ========================================================================= */
     const CONFIG = {
       recipientName: "Sameera",
-      senderName: "Your Person❤️",
+      senderName: "Your Person",
 
       // the exact moment the countdown ends — edit this to whatever date/time you want
-      // format: "YYYY-MM-DDTHH:mm:ss" (24-hour clock, read in the visitor's local time)
-      countdownTarget: "2026-09-01T00:00:00",
+      // format: "YYYY-MM-DDTHH:mm:ss+05:30" (24-hour clock, +05:30 locks it to IST
+      // so the countdown ends at the same real moment no matter the visitor's device)
+      countdownTarget: "2026-08-29T17:30:00+05:30",
 
       // the background song played on the "decorate" screen.
       // point this at a real audio file: either a filename sitting next to this
@@ -1407,15 +1415,13 @@
 
       // the letter inside the envelope
       letter: {
-        greeting: "My dearest {name} ❤️,",
+        greeting: "My dearest {name},",
         paragraphs: [
           "Wish you many more happy returns of the day my love ♥️💎",
           "On your special day, I just want you to know that I’ll always wish for your happiness and will do my best to stand beside you through every chapter of our life together.",
-          "I’ll always try my best to stand beside you through every chapter of our life together.",
-          "You bring a kind of warmth into my world that I can’t explain in words. Every little moment with you becomes a memory I want to keep forever.",
-          "Life may not always be perfect, and I know we may have difficult days too. But through everything, I want to keep choosing you, understanding you, respecting you, supporting you, and growing with you. ❤️",
-          "I hope this year brings you everything your heart wishes for — happiness, peace, love and countless beautiful moments.",
-          "And if I’m lucky enough, I want to be there beside you not just for this birthday, but for every birthday that comes after this. 🫂❤️"
+          "You bring so much warmth into my world. Every moment with you feels like something worth keeping forever.",
+          "On your special day, I wish you all the happiness, love, and joy you deserve — and I hope I get to be the one giving it to you, this year and every year after.",
+          "I can’t promise that our life will always be perfect, but I can promise that I’ll keep choosing you, understanding you, respecting you, and growing with you. ❤️🎉💖"
         ],
         signOff: "Forever yours,"
       }
@@ -1466,6 +1472,7 @@
     $('cd-name').textContent = CONFIG.recipientName;
     const target = new Date(CONFIG.countdownTarget).getTime();
     let countdownDone = false;
+    let jokesReady = false;
     let countdownInterval;
     function tickCountdown() {
       const diff = Math.max(0, target - Date.now());
@@ -1475,9 +1482,14 @@
       $('t-hrs').textContent = String(h).padStart(2, '0');
       $('t-min').textContent = String(m).padStart(2, '0');
       $('t-sec').textContent = String(s).padStart(2, '0');
+      if ($('joke-wait').style.display !== 'none') {
+        $('joke-wait').textContent = `The rest unlocks in ${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')} ⏳`;
+      }
       if (diff <= 0 && !countdownDone) {
         countdownDone = true;
         clearInterval(countdownInterval);
+        // if she's already sitting on the last joke waiting, unlock the button right away
+        if (jokesReady) renderJoke();
       }
     }
     tickCountdown();
@@ -1489,7 +1501,14 @@
     function renderJoke() {
       $('joke-text').textContent = CONFIG.jokes[jokeIdx];
       $('joke-emoji').textContent = JOKE_EMOJIS[jokeIdx % JOKE_EMOJIS.length];
-      $('joke-btn').textContent = jokeIdx === CONFIG.jokes.length - 1 ? 'Aww, okay next 💕' : 'Next';
+      const onLastJoke = jokeIdx === CONFIG.jokes.length - 1;
+      if (onLastJoke && !countdownDone) {
+        $('joke-btn').textContent = 'One more? 😄';
+        $('joke-wait').style.display = 'block';
+      } else {
+        $('joke-btn').textContent = onLastJoke ? 'Aww, okay next 💕' : 'Next';
+        $('joke-wait').style.display = 'none';
+      }
       const dots = $('joke-dots');
       dots.innerHTML = '';
       CONFIG.jokes.forEach((_, i) => {
@@ -1502,11 +1521,16 @@
       if (jokeIdx < CONFIG.jokes.length - 1) {
         jokeIdx++;
         renderJoke();
-      } else {
+      } else if (countdownDone) {
         goTo('screen-cards');
+      } else {
+        // the big moment hasn't arrived yet — keep her looping through the jokes
+        jokeIdx = 0;
+        renderJoke();
       }
     }
     renderJoke();
+    jokesReady = true;
 
     /* ---------- 2. cards ---------- */
     let cardIdx = 0;
