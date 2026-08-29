@@ -434,6 +434,24 @@
       background: rgba(37, 20, 46, .3);
     }
 
+    /* jokes card: frosted glass so the photo shows through behind the text */
+    #screen-jokes .card {
+      background: rgba(255, 251, 246, .62);
+      backdrop-filter: blur(18px) saturate(1.4);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      border: 1px solid rgba(255, 255, 255, .5);
+    }
+
+    body.night #screen-jokes .card {
+      background: rgba(43, 27, 34, .5);
+      border: 1px solid rgba(255, 255, 255, .12);
+    }
+
+    body.night #screen-jokes .card h2,
+    body.night #screen-jokes .card .eyebrow {
+      color: var(--cream-50);
+    }
+
     .bunnies {
       display: flex;
       justify-content: center;
